@@ -1,9 +1,11 @@
 Michael Frenk and Rebecca Cannon 
 
-compile the source code as gcc vm.c -o vm
-run the code as ./vm input.txt
+compile the source code as gcc driver.c lex.c
 
-When prompted, enter a valid integer within the bounds of the int variable and hit the enter button. 
+doesnt work as of right now.
+printing random things
 
-output should be printed to the console. 
+doesnt consider error handling atm
+
+incorrect usage of list
 
