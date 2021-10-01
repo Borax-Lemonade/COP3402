@@ -30,22 +30,19 @@ int main(int argc, char *argv[])
 	i = 0;
 	
 	c = fgetc(ifp);
-	printf("%d", 4);
-	while (c!=EOF)
+	while (1)
 	{
 		input[i++] = c;
-		printf("%c",c);
 		c = fgetc(ifp);
-		//if (c == EOF)
-			//break;
+		if (c == EOF)
+			break;
 	}
 	input[i] = '\0';
-	
+	/*
 	for (int j = 0; j < i; j++) {
-		printf("%c",input[i]);
+		printf("%c", input[j]);
 	}
-	
-	//printf("test");
+	printf("\n");*/
 	list = lexanalyzer(input);
 	if (list == NULL)
 	{

@@ -30,104 +30,265 @@ void printtokens();
 lexeme *lexanalyzer(char *input);
 instruction *parse(lexeme *list);
 void execute_program(instruction *code);
-int isValidDelimeter(char ch);
-int isValidSymbol(char ch);
+int isValidDelimeter(char* str);
+int isValidSymbol(char* str);
 int isValidIdentifier(char* str);
 int isValidDigit(char* str);
 int isValidReserved(char* str);
 char * subString(char* str, int right, int left);
+int getType(char* str);
 
 lexeme *lexanalyzer(char *input)
 {	
-	int lex_index = 0;
+	list = (lexeme*) malloc(sizeof(lexeme)*1000000);
+	
+	lex_index = 0;
 	
 	int length_of_input = strlen(input);
 	int start = 0, end = 0;
+	char* endEndSub = "";
+	char* endSub = "";
+	char* sub = "";
 	
-	while (end <= length_of_input || start > end) {
-		if (isValidDelimeter(input[end]) == false) {
+	//printf("we are beginning");
+	while (end <= length_of_input-1 && start <= end) {  //might have to be end < length_of_input
+		
+		sub = subString(input, start, end);
+		endSub = subString(input, end-1, end);
+		endEndSub = subString(input, end, end);
+		
+		list[lex_index].name = malloc(sizeof(char)*12);
+		strcpy(list[lex_index].name, " ");
+		
+		if (isValidDelimeter(sub) == false && isValidDelimeter(endSub) == false && isValidDelimeter(endEndSub) == false) {
 			end++;
+			//printf("%d", end);
 		}
-		else if (isValidDelimeter(input[end]) == true) {
-			if (start == end) {
-				if (isValidSymbol(input[end]) == true) {
-					strcpy(list[lex_index].name, subString(input, start, end));
-					//based on symbol put that type into list[lex_index++].type;
+		
+		else if (isValidDelimeter(sub) == true || isValidDelimeter(endSub) == true || isValidDelimeter(endEndSub) == true) {
+				if(list[lex_index-1].type == 20 && getType(sub) == 20) {
+					while (iscntrl(input[end]) == 0) {
+						end++;
+					}
+					//strcpy(list[lex_index].name, " ");
+					//free(list[lex_index-1].name);
+					lex_index-=2;
+					//free(list[lex_index-1].type);
+				} else {
+					if (isValidSymbol(sub) == true) {
+						
+						strcpy(list[lex_index].name, sub);
+						list[lex_index].type = getType(sub);
+						printf("sybmol: %s\n", list[lex_index].name);
+						printf("type: %d\n", list[lex_index].type);
+						//lex_index++;
+					}
+					
+					else if (isValidReserved(subString(input, start, end-1)) == true) {
+						strcpy(list[lex_index].name, subString(input, start, end-1)); 
+						list[lex_index].type = getType(subString(input, start, end-1));
+						printf("%d ", lex_index);
+						printf("reserved: %s\n", list[lex_index].name);
+						printf("type: %d\n", list[lex_index].type);
+						//lex_index++;
+					}
+					else if (isValidDigit(sub) == true) {
+						strcpy(list[lex_index].name, subString(input, start, end-1));
+						list[lex_index].type = numbersym;
+						list[lex_index].value = atoi(list[lex_index].name);
+						printf("%d ", lex_index);
+						printf("digit: %d\n", list[lex_index].value);
+						printf("type: %d\n", list[lex_index].type);
+						//lex_index++;
+					}
+					else if (isValidIdentifier(sub) == true && isValidReserved(subString(input, start, end-1)) == false) {
+						strcpy(list[lex_index].name, subString(input, start, end-1));
+						list[lex_index].type = identsym;
+						
+						printf("%d ", lex_index);
+						printf("id: %s\n",list[lex_index].name); //factor in getting rid of delimeter
+						printf("type: %d\n", list[lex_index].type);
+						//lex_index++;
+					}
+					
+					if (isValidSymbol(sub) == false && isValidSymbol(endSub) == true) {
+						lex_index++;
+						list[lex_index].name = malloc(sizeof(char)*12);
+						strcpy(list[lex_index].name, endSub);
+						list[lex_index].type = getType(endSub);
+						
+						printf("%d ", lex_index);
+						printf("symbol2: %s\n", list[lex_index].name);
+						printf("type: %d\n", list[lex_index].type);
+						//lex_index++;
+					}
+					if (isValidSymbol(sub) == false && isValidSymbol(endSub) == false && isValidSymbol(endEndSub) == true) {
+						lex_index++;
+						list[lex_index].name = malloc(sizeof(char)*12);
+						strcpy(list[lex_index].name, endEndSub);
+						list[lex_index].type = getType(endEndSub);
+						
+						printf("%d ", lex_index);
+						printf("symbol3: %s\n", list[lex_index].name);
+						printf("type: %d\n", list[lex_index].type);
+						//lex_index++;
+					}
 				}
-				//shift start and end
-			} else if (start != end || end == length_of_input) { //not just one char,, could be the end of input
-				if (isValidReserved(subString(input, start, end-1))) {
-					strcpy(list[lex_index].name, subString(input, start, end)); //could be end-1
-					//based on reserved put that type into list[lex_index++].type;
-				}
-				else if (isValidDigit(subString(input, start, end-1))) {
-					strcpy(list[lex_index].name, subString(input, start, end));
-					list[lex_index++].type = 15;
-				}
-				else if (isValidIdentifier(subString(input, start, end))) {
-					strcpy(list[lex_index].name, subString(input, start, end));
-					list[lex_index++].type = 14;
-				}
-			}
+			//}
+			end++;
 			start = end;
+			lex_index++;
+			
+		}
+		if (lex_index >= sizeof(*list)) {
+			//printf("i did it");
+			//realloc list to be twice as large
+			
+			list = (lexeme*)realloc(list, (sizeof(lexeme)*(sizeof(list))*2));
 		}
 	}
 	if (list == NULL) {
+		printf("it be null");
 		return NULL;
 	}
 	
+	printf("lex_index %d\n", lex_index);
+
 	printtokens();
 	
 	return list;
 }
-char* subString(char* str, int right, int left) {
-	char *ret = (char*)malloc(sizeof(char)*(right-left+2));
+int getType(char* str) {
+	if (strcmp(str, "const") == 0)
+		return constsym;
+	else if (strcmp(str, "var") == 0)
+		return varsym;
+	else if (strcmp(str, "procedure") == 0)
+		return procsym;
+	else if (strcmp(str, "begin") == 0)
+		return beginsym;
+	else if (strcmp(str, "end") == 0)
+		return endsym;
+	else if (strcmp(str, "while") == 0)
+		return whilesym;
+	else if (strcmp(str, "do") == 0)
+		return dosym;
+	else if (strcmp(str, "if") == 0)
+		return ifsym;
+	else if (strcmp(str, "then") == 0)
+		return thensym;
+	else if (strcmp(str, "else") == 0)
+		return elsesym;
+	else if (strcmp(str, "call") == 0)
+		return callsym;
+	else if (strcmp(str, "write") == 0)
+		return writesym;
+	else if (strcmp(str, "read") == 0)
+		return readsym;
+	//id/
+	//numbersy
+	else if (strcmp(str, ":=") == 0)
+		return assignsym;
+	else if (strcmp(str, "-") == 0)
+		return subsym;
+	else if (strcmp(str, "*") == 0)
+		return multsym;
+	else if (strcmp(str, "/") == 0)
+		return divsym;
+	else if (strcmp(str, "%") == 0)
+		return modsym;
+	else if (strcmp(str, "==") == 0)
+		return eqlsym;
+	else if (strcmp(str, "!=") == 0)
+		return neqsym;
+	else if (strcmp(str, "<") == 0)
+		return lsssym;
+	else if (strcmp(str, "<=") == 0)
+		return leqsym;
+	else if (strcmp(str, ">") == 0)
+		return gtrsym;
+	else if (strcmp(str, ">=") == 0)
+		return geqsym;
+	else if (strcmp(str, "odd") == 0)
+		return oddsym;
+	else if (strcmp(str, "(") == 0)
+		return lparensym;
+	else if (strcmp(str, ")") == 0)
+		return rparensym;
+	else if (strcmp(str, ",") == 0)
+		return commasym;
+	else if (strcmp(str, ".") == 0)
+		return periodsym;
+	else if (strcmp(str, ";") == 0)
+		return semicolonsym;
+	else
+		return -1;
+}
+
+char* subString(char* str, int left, int right) {
+	//printf("\nleft: %d right: %d\n", left, right);
+	char *ret = (char*)malloc(sizeof(char)*(right-left+1));
 	
 	for (int i = left; i <= right; i++) {
 		ret[i-left] = str[i];
 	}
 	ret[right-left+1] = '\0';
-	
+	//printf("substring: %s\n\n", ret);
 	return ret;
 }
 
 //0 is false
-int isValidDelimeter(char ch) {
-	
-	if (ch == ' ' || ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ',' || ch == ';' || ch == '.' ||
-		ch == '>' || ch == '<' || ch == ':=' || ch == '(' || ch == ')' || ch == '<=' || ch == '>=' || ch == '%' ||
-		ch == '!=' || ch == '==' || ch == '\0' || ch == '\t')
+
+int isValidDelimeter(char* str) {
+	if (strcmp(str, "+") == 0 || strcmp(str, "-") == 0 || strcmp(str, "*") == 0 
+	  || strcmp(str, "/") == 0 || strcmp(str,">") == 0 || strcmp(str, "<") == 0 
+	  || strcmp(str, ":=") == 0 || strcmp(str, "(") == 0 || strcmp(str, ")") == 0
+	  || strcmp(str, "<=") == 0 || strcmp(str, ">=") == 0 || strcmp(str, "%") == 0
+	  || strcmp(str, "!=") == 0 || strcmp(str, "==") == 0 || strcmp(str, ",") ==0  
+	  || strcmp(str, ";") == 0 || strcmp(str, ".")  == 0 || strcmp(str, " ") == 0 
+	  || strcmp(str, "\n") == 0 || strcmp(str, "\t") == 0  || iscntrl(str[strlen(str)-1]) != 0) {
+			//printf("passed: %s\n", str);
 			return true;
-	return false;
+	} else {
+		//printf("failed: %s\n", str);
+		return false;
+	}
 }
 
-int isValidSymbol(char ch) {
-	if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '>' || ch == '<' || ch == ':=' || ch == '(' 
-		|| ch == ')' || ch == '<=' || ch == '>=' || ch == '%' || ch == '!=' || ch == '==' || ch == ',' 
-		|| ch == ';' || ch == '.')
+int isValidSymbol(char* str) {
+	if (strcmp(str, "+") == 0 || strcmp(str, "-") == 0 || strcmp(str, "*") == 0 
+  || strcmp(str, "/") == 0 || strcmp(str,">") == 0 || strcmp(str, "<") == 0 
+  || strcmp(str, ":=") == 0 || strcmp(str, "(") == 0 || strcmp(str, ")") == 0
+  || strcmp(str, "<=") == 0 || strcmp(str, ">=") == 0 || strcmp(str, "%") == 0
+  || strcmp(str, "!=") == 0 || strcmp(str, "==") == 0 || strcmp(str, ",") ==0  
+	|| strcmp(str, ";") == 0 || strcmp(str, ".")  == 0)
 			return true;
 	return false;
 }
 
 int isValidIdentifier(char* str) {
-	if (str[0] == '0' || str[0] == '1' || str[0] == '2' || str[0] == '3' || str[0] == '4' || str[0] == '5' || 
-		str[0] == '6' || str[0] == '7' || str[0] == '8' || str[0] == '9' || isValidDelimeter(str[0]) == true)
+	if (str[0] == '0' || str[0] == '1' || str[0] == '2' || str[0] == '3'
+	   || str[0] == '4' || str[0] == '5' || str[0] == '6' || str[0] == '7'
+	   || str[0] == '8' || str[0] == '9' || strlen(str) > 11 || str[strlen(str)-1] == ':'
+	   ||isValidDelimeter(subString(str, 0, 0)) == true) //might have to be substring(str, 0, 1) -- but then what if the identifier is a single char
 			return false;
 	return true;
 	
 }
 
 int isValidDigit(char* str) {
-	if (str[0] == '0' || str[0] == '1' || str[0] == '2' || str[0] == '3' || str[0] == '4' || str[0] == '5' || 
-		str[0] == '6' || str[0] == '7' || str[0] == '8' || str[0] == '9')
+	if ((str[0] == '0' || str[0] == '1' || str[0] == '2' || str[0] == '3' || str[0] == '4' || str[0] == '5' || 
+		str[0] == '6' || str[0] == '7' || str[0] == '8' || str[0] == '9') && strlen(str) < 5)
 			return true;
 	return false;
 }
 
 int isValidReserved(char* str) {
+	//printf("here");
    if (!strcmp(str, "const") || !strcmp(str, "var") || !strcmp(str, "procedure") || !strcmp(str, "call") 
 	    || !strcmp(str, "if") || !strcmp(str, "then") || !strcmp(str, "else") || !strcmp(str, "while")
-		|| !strcmp(str, "do") || !strcmp(str, "begin") || !strcmp(str,"end") || !strcmp(str, "read") || !strcmp(str, "write") || !strcmp(str, "odd"))
+		|| !strcmp(str, "do") || !strcmp(str, "begin") || !strcmp(str,"end") || !strcmp(str, "read")
+		|| !strcmp(str, "write") || !strcmp(str, "odd"))
 			return true;
    return false;
    
@@ -136,6 +297,7 @@ int isValidReserved(char* str) {
 void printtokens()
 {
 	int i;
+	//printf("lex_index: %d", lex_index);
 	printf("Lexeme Table:\n");
 	printf("lexeme\t\ttoken type\n");
 	for (i = 0; i < lex_index; i++)

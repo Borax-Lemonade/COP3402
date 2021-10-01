@@ -13,7 +13,7 @@ typedef enum token_type {
 } token_type;
 
 typedef struct lexeme {
-	char name[12];
+	char *name;
 	int value;
 	token_type type;
 } lexeme;
