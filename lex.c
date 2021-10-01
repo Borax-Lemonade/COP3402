@@ -15,17 +15,27 @@
 #include <ctype.h>
 #include <string.h>
 #include "compiler.h"
+
 #define MAX_NUMBER_TOKENS 500
 #define MAX_IDENT_LEN 11
 #define MAX_NUMBER_LEN 5
+#define false 0
+#define true 1
 
 lexeme *list;
 int lex_index;
+
 void printlexerror(int type);
 void printtokens();
 lexeme *lexanalyzer(char *input);
 instruction *parse(lexeme *list);
 void execute_program(instruction *code);
+int isValidDelimeter(char ch);
+int isValidSymbol(char ch);
+int isValidIdentifier(char* str);
+int isValidDigit(char* str);
+int isValidReserved(char* str);
+char * subString(char* str, int right, int left);
 
 lexeme *lexanalyzer(char *input)
 {	
@@ -34,61 +44,72 @@ lexeme *lexanalyzer(char *input)
 	int length_of_input = strlen(input);
 	int start = 0, end = 0;
 	
-	while (end <= length_of_input) {
-		if (isValidDelimeter(input[end] == false) {
+	while (end <= length_of_input || start > end) {
+		if (isValidDelimeter(input[end]) == false) {
 			end++;
 		}
 		else if (isValidDelimeter(input[end]) == true) {
 			if (start == end) {
 				if (isValidSymbol(input[end]) == true) {
-					strcpy(list[lex_index].name, substring(input, start, end));
+					strcpy(list[lex_index].name, subString(input, start, end));
 					//based on symbol put that type into list[lex_index++].type;
 				}
 				//shift start and end
-			} else if (start != end || end == length) { //not just one char,, could be the end of input
+			} else if (start != end || end == length_of_input) { //not just one char,, could be the end of input
 				if (isValidReserved(subString(input, start, end-1))) {
-					strcpy(list[lex_index].name, substring(input, start, end)); //could be end-1
+					strcpy(list[lex_index].name, subString(input, start, end)); //could be end-1
 					//based on reserved put that type into list[lex_index++].type;
 				}
 				else if (isValidDigit(subString(input, start, end-1))) {
-					strcpy(list[lex_index].name, substring(input, start, end));
+					strcpy(list[lex_index].name, subString(input, start, end));
 					list[lex_index++].type = 15;
 				}
-				else if (isValidIdentifier(substring(input, start, end))) {
-					strcpy(list[lex_index].name, substring(input, start, end));
+				else if (isValidIdentifier(subString(input, start, end))) {
+					strcpy(list[lex_index].name, subString(input, start, end));
 					list[lex_index++].type = 14;
 				}
 			}
 			start = end;
 		}
 	}
-	if (list == null)
+	if (list == NULL) {
 		return NULL;
+	}
 	
 	printtokens();
 	
 	return list;
 }
+char* subString(char* str, int right, int left) {
+	char *ret = (char*)malloc(sizeof(char)*(right-left+2));
+	
+	for (int i = left; i <= right; i++) {
+		ret[i-left] = str[i];
+	}
+	ret[right-left+1] = '\0';
+	
+	return ret;
+}
 
 //0 is false
-bool isValidDelimeter(char ch) {
+int isValidDelimeter(char ch) {
 	
 	if (ch == ' ' || ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ',' || ch == ';' || ch == '.' ||
-		ch == '>' || ch == '<' || ch = ':=' || ch == '(' || ch == ')' || ch == '<=' || ch == '>=' || ch == '%' ||
+		ch == '>' || ch == '<' || ch == ':=' || ch == '(' || ch == ')' || ch == '<=' || ch == '>=' || ch == '%' ||
 		ch == '!=' || ch == '==' || ch == '\0' || ch == '\t')
 			return true;
 	return false;
 }
 
-bool isValidSymbol(char ch) {
-	if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '>' || ch == '<' || ch = ':=' || ch == '(' 
+int isValidSymbol(char ch) {
+	if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '>' || ch == '<' || ch == ':=' || ch == '(' 
 		|| ch == ')' || ch == '<=' || ch == '>=' || ch == '%' || ch == '!=' || ch == '==' || ch == ',' 
-		|| ch == ';' || ch == '.' ||)
+		|| ch == ';' || ch == '.')
 			return true;
 	return false;
 }
 
-bool isValidIdentifier(char* str) {
+int isValidIdentifier(char* str) {
 	if (str[0] == '0' || str[0] == '1' || str[0] == '2' || str[0] == '3' || str[0] == '4' || str[0] == '5' || 
 		str[0] == '6' || str[0] == '7' || str[0] == '8' || str[0] == '9' || isValidDelimeter(str[0]) == true)
 			return false;
@@ -96,120 +117,20 @@ bool isValidIdentifier(char* str) {
 	
 }
 
-bool isValidDigit(char* str) {
+int isValidDigit(char* str) {
 	if (str[0] == '0' || str[0] == '1' || str[0] == '2' || str[0] == '3' || str[0] == '4' || str[0] == '5' || 
 		str[0] == '6' || str[0] == '7' || str[0] == '8' || str[0] == '9')
 			return true;
 	return false;
 }
 
-bool isValidReserved(char* str) {
+int isValidReserved(char* str) {
    if (!strcmp(str, "const") || !strcmp(str, "var") || !strcmp(str, "procedure") || !strcmp(str, "call") 
 	    || !strcmp(str, "if") || !strcmp(str, "then") || !strcmp(str, "else") || !strcmp(str, "while")
 		|| !strcmp(str, "do") || !strcmp(str, "begin") || !strcmp(str,"end") || !strcmp(str, "read") || !strcmp(str, "write") || !strcmp(str, "odd"))
 			return true;
    return false;
    
-}
-
-int getReservedWord(char *str) {
-	switch(str) {
-		case "const":
-			return 1;
-			break;
-		case "var":
-			return 2;
-			break;
-		case "procedure":
-			return 3;
-			break;
-		case "begin":
-			return 4;
-			break;
-		case "end":
-			return 5;
-			break;
-		case "while":
-			return 6;
-			break;
-		case "do":
-			return 7;
-			break;
-		case "if":
-			return 8;
-			break;
-		case "then":
-			return 9;
-			break;
-		case "else":
-			return 10;
-			break;
-		case "call":
-			return 11;
-			break;
-		case "write":
-			return 12;
-			break;
-		case "read":
-			return 13;
-			break;
-}
-
-int getSymbol(char *str) {
-	switch(str) {
-		case ":=":
-			return 16;
-			break;
-		case "+":
-			return 17;
-			break;
-		case "-":
-			return 18;
-			break;
-		case "*":
-			return 19;
-			break;
-		case "/":
-			return 20;
-			break;
-		case "%":
-			return 21;
-			break;
-		case "==":
-			return 22;
-			break;
-		case "!=":
-			return 23;
-			break;
-		case "<":
-			return 24;
-			break;
-		case "<=":
-			return 25;
-			break;
-		case ">":
-			return 26;
-			break;
-		case ">=":
-			return 27;
-			break;
-		case "(":
-			return 29;
-			break;
-		case ")":
-			return 30;
-			break;
-		case ",":
-			return 31;
-			break;
-		case ".":
-			return 32;
-			break;
-		case ";":
-			return 33;
-			break;
-		
-	}
 }
 
 void printtokens()
@@ -353,5 +274,4 @@ void printlexerror(int type)
 	
 	free(list);
 	return;
-}
 }
