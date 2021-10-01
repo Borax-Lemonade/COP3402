@@ -2,10 +2,8 @@ Michael Frenk and Rebecca Cannon
 
 compile the source code as gcc driver.c lex.c
 
-doesnt work as of right now.
-printing random things
+I havent run it against any other inputs other than the first given one and my own personal one
+it also doesnt completely ignore whitespace,,,
 
-doesnt consider error handling atm
-
-incorrect usage of list
+#todo -- go back and ensure print, compiler, and driver were not changed -- if so write it down here(how and why)
 
