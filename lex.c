@@ -58,7 +58,7 @@ lexeme *lexanalyzer(char *input)
 		endEndSub = subString(input, end, end);
 		
 		list[lex_index].name = malloc(sizeof(char)*12);
-		strcpy(list[lex_index].name, " ");
+		//strcpy(list[lex_index].name, " ");
 		
 		if (isValidDelimeter(sub) == false && isValidDelimeter(endSub) == false && isValidDelimeter(endEndSub) == false) {
 			end++;
@@ -66,14 +66,10 @@ lexeme *lexanalyzer(char *input)
 		}
 		
 		else if (isValidDelimeter(sub) == true || isValidDelimeter(endSub) == true || isValidDelimeter(endEndSub) == true) {
-				if(list[lex_index-1].type == 20 && getType(sub) == 20) {
+				if (getType(sub) == 20 && getType(subString(input, end, end+1))) {
 					while (iscntrl(input[end]) == 0) {
 						end++;
 					}
-					//strcpy(list[lex_index].name, " ");
-					//free(list[lex_index-1].name);
-					lex_index-=2;
-					//free(list[lex_index-1].type);
 				} else {
 					if (isValidSymbol(sub) == true) {
 						
@@ -101,7 +97,7 @@ lexeme *lexanalyzer(char *input)
 						printf("type: %d\n", list[lex_index].type);
 						//lex_index++;
 					}
-					else if (isValidIdentifier(sub) == true && isValidReserved(subString(input, start, end-1)) == false) {
+					else if (isValidIdentifier(sub) == true && (isValidReserved(subString(input, start, end-1)) == false && isValidReserved(subString(input, start, end-2)) == false)) {
 						strcpy(list[lex_index].name, subString(input, start, end-1));
 						list[lex_index].type = identsym;
 						
@@ -189,6 +185,8 @@ int getType(char* str) {
 	//numbersy
 	else if (strcmp(str, ":=") == 0)
 		return assignsym;
+	else if (strcmp(str, "+") == 0)
+		return addsym;
 	else if (strcmp(str, "-") == 0)
 		return subsym;
 	else if (strcmp(str, "*") == 0)
@@ -301,7 +299,9 @@ void printtokens()
 	printf("Lexeme Table:\n");
 	printf("lexeme\t\ttoken type\n");
 	for (i = 0; i < lex_index; i++)
-	{
+	{	
+		if (list[i].type == 0)
+			continue;
 		switch (list[i].type)
 		{
 			case oddsym:
@@ -409,7 +409,8 @@ void printtokens()
 	printf("\n");
 	printf("Token List:\n");
 	for (i = 0; i < lex_index; i++)
-	{
+	{	if (list[i].type == 0)
+			continue;
 		if (list[i].type == numbersym)
 			printf("%d %d ", numbersym, list[i].value);
 		else if (list[i].type == identsym)
